@@ -11,7 +11,7 @@ public class InputManager : MonoBehaviour {
     }
     public Mode currentMode;
 
-    public Transform camera;
+    public Transform trackingCamera;
 
 	// Use this for initialization
 	void Start () {
@@ -32,34 +32,67 @@ public class InputManager : MonoBehaviour {
 
     public float rampTime;
 
+    public SpriteRenderer spriteRender;
+
     public void SetMode(Mode m)
     {
-        currentMode = m;
         switch(m)
         {
             case Mode.Gas:
                 Debug.Log("Gas!");
-                StartCoroutine(RampAttraction(rampTime,FluidAttraction));
+                if (currentMode == Mode.Solid)
+                {
+                    foreach (Transform point in pm.points)
+                    {
+                        point.GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity;
+                    }
+                }
+                GetComponent<CircleCollider2D>().enabled = false;
+                GetComponent<Rigidbody2D>().isKinematic = true;
+                GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = true;
+                GetComponent<LineRenderer>().enabled = true;
+                GetComponent<Roll>().enabled = false;
+                pm.SetActive(true);
+                spriteRender.enabled = false;
+                StartCoroutine(RampAttraction(rampTime, FluidAttraction));
                 pm.attractionConstant = FluidAttraction;
                 pm.gravityConstant = GasGravity;
                 pm.repulsionConstant = RepulsionConstant;
+                currentMode = m;
+
                 break;
             case Mode.Liquid:
                 Debug.Log("Liquid!");
+                if (currentMode==Mode.Solid)
+                {
+                    foreach (Transform point in pm.points)
+                    {
+                        point.GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity;
+                    }
+                }
+                GetComponent<CircleCollider2D>().enabled = false;
+                GetComponent<Rigidbody2D>().isKinematic = true;
+                GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = true;
+                GetComponent<LineRenderer>().enabled = true;
+                spriteRender.enabled = false;
+                pm.SetActive(true);
+                GetComponent<Roll>().enabled = false;
+
                 StartCoroutine(RampAttraction(rampTime, FluidAttraction));
                 pm.gravityConstant = LiquidGravity;
                 pm.repulsionConstant = RepulsionConstant;
+                currentMode = m;
                 break;
             case Mode.Solid:
                 Debug.Log("Solid!");
-                StartCoroutine(RampAttraction(rampTime, SolidAttraction));
+                StartCoroutine(RampAttraction(rampTime, SolidAttraction, true));
                 pm.gravityConstant = SolidGravity;
                 pm.repulsionConstant = RepulsionConstant;
                 break;
         }
     }
 
-    IEnumerator RampAttraction(float length, float target)
+    IEnumerator RampAttraction(float length, float target, bool solidAfter = false)
     {
         float start = pm.attractionConstant;
         float timer = 0;
@@ -71,27 +104,42 @@ public class InputManager : MonoBehaviour {
         }
 
         pm.attractionConstant = target;
+
+        if(solidAfter)
+        {
+            GetComponent<CircleCollider2D>().enabled = true;
+            GetComponent<Rigidbody2D>().isKinematic = false;
+            GetComponent<Rigidbody2D>().velocity = pm.velocity;
+            GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = false;
+            GetComponent<LineRenderer>().enabled = false;
+            spriteRender.enabled = true;
+            GetComponent<Roll>().enabled = true;
+            pm.SetActive(false);
+            currentMode = Mode.Solid;
+
+        }
+        else
+        {
+            transform.rotation = Quaternion.identity;
+        }
     }
 
 	// Update is called once per frame
 	void Update () {
-
-        camera.position = new Vector3(pm.centerOfMass.x,pm.centerOfMass.y, camera.position.z);
-
-        if (Input.GetKey(KeyCode.D))
+        if (currentMode == Mode.Solid)
         {
-            foreach (Transform t in pm.points)
-            {
-                t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * 5 + Vector2.up * 2);
-            }
+            trackingCamera.position = new Vector3(transform.position.x, transform.position.y, trackingCamera.position.z);
         }
-        if (Input.GetKey(KeyCode.A))
+        else
         {
-            foreach (Transform t in pm.points)
-            {
-                t.GetComponent<Rigidbody2D>().AddForce(Vector2.left * 5 + Vector2.up * 2);
-            }
+            trackingCamera.position = new Vector3(pm.centerOfMass.x, pm.centerOfMass.y, trackingCamera.position.z);
         }
+
+        foreach (Transform t in pm.points)
+        {
+            t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * Input.GetAxis("Horizontal") * 5 + Vector2.up * 2);
+        }
+
         //gas
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
@@ -106,6 +154,15 @@ public class InputManager : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             SetMode(Mode.Solid);
+        }
+
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            pm.AddRandomPoint();
+        }
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            pm.SubtractRandomPoint();
         }
 	}
 }

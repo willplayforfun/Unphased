@@ -198,7 +198,7 @@ public class PointManager : MonoBehaviour {
             {
                 RunClusterDetection();
             }
-            //RunMergeCheck();
+            RunMergeCheck();
         }
 	}
 

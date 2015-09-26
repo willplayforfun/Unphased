@@ -15,10 +15,14 @@ public class Roll : MonoBehaviour {
 
     private bool onGround;
 
+    public float groundedForce = 5;
+    public float ungroundedForce = 2;
+    public float constantUpwardsForce = 1;
+
     // Update is called once per frame
     void Update () {
 	    _body.AddTorque(-Input.GetAxis("Horizontal") * torqueFactor);
-        _body.AddForce(Vector2.right * Input.GetAxis("Horizontal") * (onGround ? 5 : 2) + Vector2.up * 1);
+        _body.AddForce(Vector2.right * Input.GetAxis("Horizontal") * (onGround ? groundedForce : ungroundedForce) + Vector2.up * constantUpwardsForce);
         onGround = false;
 
     }
@@ -26,6 +30,7 @@ public class Roll : MonoBehaviour {
     void OnCollisionEnter2D(Collision2D collision)
     {
         onGround = true;
+        Debug.Log("Collision of magnitude " + collision.relativeVelocity.magnitude);
         if(collision.relativeVelocity.magnitude > breakSpeed)
         {
             Break();

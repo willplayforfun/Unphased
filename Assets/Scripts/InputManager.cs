@@ -52,7 +52,7 @@ public class InputManager : MonoBehaviour {
             switch (m)
             {
                 case Mode.Gas:
-                    Debug.Log("Gas!");
+                    //Debug.Log("Gas!");
                     if (currentMode == Mode.Solid)
                     {
                         foreach (Transform point in pm.points)
@@ -76,7 +76,7 @@ public class InputManager : MonoBehaviour {
 
                     break;
                 case Mode.Liquid:
-                    Debug.Log("Liquid!");
+                    //Debug.Log("Liquid!");
                     if (currentMode == Mode.Solid)
                     {
                         foreach (Transform point in pm.points)
@@ -98,7 +98,7 @@ public class InputManager : MonoBehaviour {
 
                     break;
                 case Mode.Solid:
-                    Debug.Log("Solid!");
+                    //Debug.Log("Solid!");
                     StartCoroutine(RampAttraction(0.2f, SolidAttraction, true));
                     pm.gravityConstant = SolidGravity;
                     pm.repulsionConstant = RepulsionConstant;
@@ -156,6 +156,9 @@ public class InputManager : MonoBehaviour {
 
     public float cameraDampening;
 
+    public float gasMovementForce = 5;
+    public float liquidMovementForce = 5;
+
 	// Update is called once per frame
 	void Update () {
         if (currentMode == Mode.Solid)
@@ -175,7 +178,7 @@ public class InputManager : MonoBehaviour {
                 {
                     float distanceFromCenter = (t.position - (Vector3)pm.centerOfMass).magnitude;
                     float mult = (1 - distanceFromCenter / pm.distanceFromCenter);
-                    t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * Input.GetAxis("Horizontal") * 5);
+                    t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * Input.GetAxis("Horizontal") * (currentMode==Mode.Gas ? gasMovementForce : liquidMovementForce));
                 }
             }
         }

@@ -10,11 +10,13 @@ public class PointManager : MonoBehaviour {
 
     public float repulsiveLimit;
 
+	public float distanceFromCenter;
+
 	public List<Transform> points = new List<Transform>();
 
     public GameObject pointPrefab;
 
-	private Transform centerOfMass = 0;
+	public Vector2 centerOfMass = Vector2.zero;
 
     void Start()
     {
@@ -34,16 +36,20 @@ public class PointManager : MonoBehaviour {
     }
 
 	void FixedUpdate(){
-		float tmpCenterMass = 0;
 		// loop through points
 		foreach (Transform point in points) {
 			Rigidbody2D pointComponent = point.GetComponent<Rigidbody2D>();
 
 			// Center of Mass
-			tmpCenterMass += point.position;
+			centerOfMass += (Vector2)point.position;
 
 			// Add Graivty Force to point
 			pointComponent.AddForce (gravityConstant * Vector2.down);
+
+			// Instantiate New PointManager when out of bound
+			if(((Vector2)point.position - centerOfMass).magnitude > distanceFromCenter) {
+				points.Remove(point);
+			}
 
 			// loop through other points
 			foreach (Transform otherPoint in points) {
@@ -61,6 +67,7 @@ public class PointManager : MonoBehaviour {
 			}
 		}
 
-		centerOfMass = tmpCenterMass / points.Count;
+		centerOfMass /= points.Count;
+		Debug.Log (centerOfMass.magnitude);
 	}
 }

@@ -105,8 +105,9 @@ public class PointManager : MonoBehaviour {
     public int minPoints;
 
     public AudioClip largeMovementSoundLiquid;
+    public float largeMovementThreshold = 5.0f;
 
-	void FixedUpdate(){
+    void FixedUpdate(){
         if (_active)
         {
             List<Transform> markedForRemoval = new List<Transform>();
@@ -166,11 +167,12 @@ public class PointManager : MonoBehaviour {
 
             tmpCenterMass /= points.Count;
             Vector3 newVelocity = (tmpCenterMass - (Vector3)centerOfMass)/Time.deltaTime;
-            if(Vector3.Distance(newVelocity, velocity) > 15f)
+            if(Vector3.Distance(newVelocity, velocity) > largeMovementThreshold)
             {
-                if (GetComponent<InputManager>()!= null && GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid)
+                AudioSource audioSource = GetComponent<AudioSource>();
+                if (GetComponent<InputManager>() != null && GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid && !audioSource.isPlaying)
                 {
-                    GetComponent<AudioSource>().PlayOneShot(largeMovementSoundLiquid);
+                    audioSource.PlayOneShot(largeMovementSoundLiquid);
                 }
             }
             velocity = newVelocity;

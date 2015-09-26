@@ -6,12 +6,15 @@ public class Roll : MonoBehaviour {
     public float torqueFactor = 1.0f;
 
     public float breakSpeed;
+    public AudioClip breakSound;
 
     // Use this for initialization
     void Start () {
         broken = false;
         _body = GetComponent<Rigidbody2D>();
     }
+
+    public AudioClip[] impactSounds;
 
     private bool onGround;
 
@@ -27,14 +30,47 @@ public class Roll : MonoBehaviour {
 
     }
 
+    private float lastImpactEffect;
+
     void OnCollisionEnter2D(Collision2D collision)
     {
-        onGround = true;
+
         Debug.Log("Collision of magnitude " + collision.relativeVelocity.magnitude);
         if(collision.relativeVelocity.magnitude > breakSpeed)
         {
             Break();
         }
+        else
+        {
+            GetComponent<AudioSource>().PlayOneShot(impactSounds[Random.Range(0, impactSounds.Length)]);
+
+            if (Time.time - lastImpactEffect > 0.8f)
+            {
+                lastImpactEffect = Time.time;
+                SpawnImpactEffects(5);
+            }
+        }
+    }
+
+    private void SpawnImpactEffects(int n)
+    {
+        //spawn fragments
+        for (int i = 0; i < n; i++)
+        {
+            GameObject fragment = Instantiate(fragmentPrefabs[Random.Range(0, fragmentPrefabs.Length)]);
+            Vector3 radial = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward) * Vector3.right * Random.Range(0, GetComponent<CircleCollider2D>().radius);
+            fragment.transform.position = this.transform.position + radial;
+            fragment.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward);
+
+
+            fragment.GetComponent<Rigidbody2D>().velocity = radial * Random.Range(0f, 5f);
+            fragment.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(-250, 250);
+        }
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        onGround = true;
     }
 
     public SpriteRenderer ball;
@@ -47,6 +83,8 @@ public class Roll : MonoBehaviour {
     {
         if (!broken)
         {
+            GetComponent<AudioSource>().PlayOneShot(breakSound);
+
             broken = true;
             GetComponent<InputManager>().enabled = false;
             ball.enabled = false;
@@ -66,7 +104,7 @@ public class Roll : MonoBehaviour {
             Vector3 radial = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward) * Vector3.right * Random.Range(0, GetComponent<CircleCollider2D>().radius);
             fragment.transform.position = this.transform.position + radial;
             fragment.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward);
-
+            Destroy(fragment.GetComponent<FadeOutAfterTime>());
 
             fragment.GetComponent<Rigidbody2D>().velocity = radial * Random.Range(0f,5f);
             fragment.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(-250, 250);

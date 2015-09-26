@@ -2,8 +2,11 @@
 
 public class MenuManager : MonoBehaviour {
 
-    public void PlayGame() {
-        Application.LoadLevel(1);
+    public void Update() {
+        if (Input.GetButtonDown("Start"))
+        {
+            Application.LoadLevel(1);
+        }
     }    
 }
 

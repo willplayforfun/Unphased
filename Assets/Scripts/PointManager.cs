@@ -32,6 +32,8 @@ public class PointManager : MonoBehaviour {
     private Vector2 turnOffPoint;
     private bool ignoreCoM;
 
+    public LayerMask blockingLayers;
+
     public void SetActive(bool active)
     {
         if (active != _active)
@@ -56,7 +58,18 @@ public class PointManager : MonoBehaviour {
                 }
                 if  (active) 
                 {
-                    t.position += (Vector3)delta; 
+                    Vector2 start = transform.position;
+                    Vector2 end = t.position + (Vector3)delta;
+                    RaycastHit2D rh = Physics2D.Raycast(start, (end- start), (end-start).magnitude, blockingLayers);
+                    if (rh.collider != null)
+                    {
+                        Debug.DrawLine(start, rh.point, Color.blue, 2);
+                        t.position = (Vector2)transform.position + (end - start).normalized  * (((Vector2)transform.position - rh.point).magnitude *0.9f);
+                    }
+                    else
+                    {
+                        t.position = (Vector2)transform.position + (end - start); //(end - start).normalized * Mathf.Clamp((end - start).magnitude,0,(end - start).magnitude);// += (Vector3)delta;
+                    } 
                 }
                 t.GetComponent<Collider2D>().enabled = active;
             }
@@ -116,7 +129,7 @@ public class PointManager : MonoBehaviour {
                         Vector2 distance = (point.position - otherPoint.position);
 
                         // Add attraction Force to point
-                        pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2)), attractiveLimit));
+                        pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 1.5f)), attractiveLimit));
 
                         // Add repulsive Force to otherPoint
                         pointComponent.AddForce(repulsionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2.5f)), repulsiveLimit));
@@ -154,7 +167,10 @@ public class PointManager : MonoBehaviour {
 
     public void AddRandomPoint()
     {
-
+        Vector3 radial = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward) * Vector3.right * Random.Range(0, distanceFromCenter);
+        GameObject newPoint = Instantiate(pointPrefab);
+        newPoint.transform.position = transform.position + radial;
+        points.Add(newPoint.transform);
     }
 
     public void SubtractRandomPoint()

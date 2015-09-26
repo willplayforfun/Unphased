@@ -41,6 +41,10 @@ public class InputManager : MonoBehaviour {
     public Material liquidInside;
     public Material liquidOutside;
 
+    public float visualSwapDelay;
+
+    public SpriteRenderer eyes;
+
     public void SetMode(Mode m)
     {
         switch(m)
@@ -56,13 +60,10 @@ public class InputManager : MonoBehaviour {
                 }
                 GetComponent<CircleCollider2D>().enabled = false;
                 GetComponent<Rigidbody2D>().isKinematic = true;
-                GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = true;
-                GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().material = gasInside;
-                GetComponent<LineRenderer>().enabled = true;
-                GetComponent<LineRenderer>().material = gasOutside;
+                StartCoroutine(WaitAndSwapVisuals(visualSwapDelay, gasInside, gasOutside));
+                
                 GetComponent<Roll>().enabled = false;
                 pm.SetActive(true);
-                spriteRender.enabled = false;
                 StartCoroutine(RampAttraction(rampTime, FluidAttraction));
                 pm.attractionConstant = FluidAttraction;
                 pm.gravityConstant = GasGravity;
@@ -81,14 +82,9 @@ public class InputManager : MonoBehaviour {
                 }
                 GetComponent<CircleCollider2D>().enabled = false;
                 GetComponent<Rigidbody2D>().isKinematic = true;
-                GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = true;
-                GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().material = liquidInside;
-                GetComponent<LineRenderer>().enabled = true;
-                GetComponent<LineRenderer>().material = liquidOutside;
-                spriteRender.enabled = false;
                 pm.SetActive(true);
                 GetComponent<Roll>().enabled = false;
-
+                StartCoroutine(WaitAndSwapVisuals(visualSwapDelay, liquidInside, liquidOutside));
                 StartCoroutine(RampAttraction(rampTime, FluidAttraction));
                 pm.gravityConstant = LiquidGravity;
                 pm.repulsionConstant = RepulsionConstant;
@@ -104,6 +100,20 @@ public class InputManager : MonoBehaviour {
                 ui.phase = Phase.Solid;
                 break;
         }
+    }
+
+    public bool eyesOn;
+
+    IEnumerator WaitAndSwapVisuals(float length, Material insideMaterial, Material outsideMaterial)
+    {
+        yield return new WaitForSeconds(length);
+        GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = true;
+        GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().material = insideMaterial;
+        GetComponent<LineRenderer>().enabled = true;
+        GetComponent<LineRenderer>().material = outsideMaterial;
+        spriteRender.enabled = false;
+        eyes.enabled = eyesOn && true;
+
     }
 
     IEnumerator RampAttraction(float length, float target, bool solidAfter = false)
@@ -127,6 +137,7 @@ public class InputManager : MonoBehaviour {
             GetComponent<Outliner>().mf.GetComponent<MeshRenderer>().enabled = false;
             GetComponent<LineRenderer>().enabled = false;
             spriteRender.enabled = true;
+            eyes.enabled = false;
             GetComponent<Roll>().enabled = true;
             pm.SetActive(false);
             currentMode = Mode.Solid;
@@ -175,8 +186,12 @@ public class InputManager : MonoBehaviour {
             SetMode(Mode.Solid);
         }
 
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
+            pm.AddRandomPoint();
+            pm.AddRandomPoint();
+            pm.AddRandomPoint();
+            pm.AddRandomPoint();
             pm.AddRandomPoint();
         }
         if (Input.GetKey(KeyCode.LeftControl))

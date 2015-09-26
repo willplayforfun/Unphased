@@ -14,6 +14,8 @@ public class PointManager : MonoBehaviour {
 
     public GameObject pointPrefab;
 
+	private Transform centerOfMass = 0;
+
     void Start()
     {
         List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
@@ -32,16 +34,16 @@ public class PointManager : MonoBehaviour {
     }
 
 	void FixedUpdate(){
+		float tmpCenterMass = 0;
 		// loop through points
 		foreach (Transform point in points) {
 			Rigidbody2D pointComponent = point.GetComponent<Rigidbody2D>();
 
+			// Center of Mass
+			tmpCenterMass += point.position;
+
 			// Add Graivty Force to point
 			pointComponent.AddForce (gravityConstant * Vector2.down);
-
-			// remove point from points to not apply focres to it
-			//points.Remove(point);
-
 
 			// loop through other points
 			foreach (Transform otherPoint in points) {
@@ -50,16 +52,15 @@ public class PointManager : MonoBehaviour {
                 {
                     Vector2 distance = (point.position - otherPoint.position);
 
-
                     // Add attraction Force to point
                     pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2)), repulsiveLimit));
 
                     // Add repulsive Force to otherPoint
                     pointComponent.AddForce(repulsionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 3)), repulsiveLimit));
-                    //pointComponent.AddForce (repulsionConstant * Vector2.right);
                 }
-				//points.Add(point);
 			}
 		}
+
+		centerOfMass = tmpCenterMass / points.Count;
 	}
 }

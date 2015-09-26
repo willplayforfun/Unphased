@@ -47,61 +47,64 @@ public class InputManager : MonoBehaviour {
 
     public void SetMode(Mode m)
     {
-        switch(m)
+        if (m != currentMode)
         {
-            case Mode.Gas:
-                Debug.Log("Gas!");
-                if (currentMode == Mode.Solid)
-                {
-                    foreach (Transform point in pm.points)
+            switch (m)
+            {
+                case Mode.Gas:
+                    Debug.Log("Gas!");
+                    if (currentMode == Mode.Solid)
                     {
-                        point.GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity;
+                        foreach (Transform point in pm.points)
+                        {
+                            point.GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity;
+                        }
                     }
-                }
-                GetComponent<CircleCollider2D>().enabled = false;
-                GetComponent<Rigidbody2D>().isKinematic = true;
-                StartCoroutine(WaitAndSwapVisuals(visualSwapDelay, gasInside, gasOutside));
-                
-                GetComponent<Roll>().enabled = false;
-                pm.SetActive(true);
-                StartCoroutine(RampAttraction(rampTime, FluidAttraction));
-                pm.attractionConstant = FluidAttraction;
-                pm.gravityConstant = GasGravity;
-                pm.repulsionConstant = RepulsionConstant;
-                currentMode = m;
-                ui.phase = Phase.Gas;
-                transform.rotation = Quaternion.identity;
+                    GetComponent<CircleCollider2D>().enabled = false;
+                    GetComponent<Rigidbody2D>().isKinematic = true;
+                    StartCoroutine(WaitAndSwapVisuals(visualSwapDelay, gasInside, gasOutside));
 
-                break;
-            case Mode.Liquid:
-                Debug.Log("Liquid!");
-                if (currentMode==Mode.Solid)
-                {
-                    foreach (Transform point in pm.points)
+                    GetComponent<Roll>().enabled = false;
+                    pm.SetActive(true);
+                    StartCoroutine(RampAttraction(rampTime, FluidAttraction));
+                    pm.attractionConstant = FluidAttraction;
+                    pm.gravityConstant = GasGravity;
+                    pm.repulsionConstant = RepulsionConstant;
+                    currentMode = m;
+                    ui.phase = Phase.Gas;
+                    transform.rotation = Quaternion.identity;
+
+                    break;
+                case Mode.Liquid:
+                    Debug.Log("Liquid!");
+                    if (currentMode == Mode.Solid)
                     {
-                        point.GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity;
+                        foreach (Transform point in pm.points)
+                        {
+                            point.GetComponent<Rigidbody2D>().velocity = GetComponent<Rigidbody2D>().velocity;
+                        }
                     }
-                }
-                GetComponent<CircleCollider2D>().enabled = false;
-                GetComponent<Rigidbody2D>().isKinematic = true;
-                pm.SetActive(true);
-                GetComponent<Roll>().enabled = false;
-                StartCoroutine(WaitAndSwapVisuals(visualSwapDelay, liquidInside, liquidOutside));
-                StartCoroutine(RampAttraction(rampTime, FluidAttraction));
-                pm.gravityConstant = LiquidGravity;
-                pm.repulsionConstant = RepulsionConstant;
-                currentMode = m;
-                ui.phase = Phase.Liquid;
-                transform.rotation = Quaternion.identity;
+                    GetComponent<CircleCollider2D>().enabled = false;
+                    GetComponent<Rigidbody2D>().isKinematic = true;
+                    pm.SetActive(true);
+                    GetComponent<Roll>().enabled = false;
+                    StartCoroutine(WaitAndSwapVisuals(visualSwapDelay, liquidInside, liquidOutside));
+                    StartCoroutine(RampAttraction(rampTime, FluidAttraction));
+                    pm.gravityConstant = LiquidGravity;
+                    pm.repulsionConstant = RepulsionConstant;
+                    currentMode = m;
+                    ui.phase = Phase.Liquid;
+                    transform.rotation = Quaternion.identity;
 
-                break;
-            case Mode.Solid:
-                Debug.Log("Solid!");
-                StartCoroutine(RampAttraction(0.2f, SolidAttraction, true));
-                pm.gravityConstant = SolidGravity;
-                pm.repulsionConstant = RepulsionConstant;
-                ui.phase = Phase.Solid;
-                break;
+                    break;
+                case Mode.Solid:
+                    Debug.Log("Solid!");
+                    StartCoroutine(RampAttraction(0.2f, SolidAttraction, true));
+                    pm.gravityConstant = SolidGravity;
+                    pm.repulsionConstant = RepulsionConstant;
+                    ui.phase = Phase.Solid;
+                    break;
+            }
         }
     }
 

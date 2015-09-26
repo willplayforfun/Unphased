@@ -185,8 +185,134 @@ public class PointManager : MonoBehaviour {
             }
 
             transform.position = centerOfMass;
+
+            RunClusterDetection();
         }
 	}
+
+    void RunClusterDetection()
+    {
+        int k = 2;
+        int n = points.Count;
+
+        Vector2[] data = new Vector2[n];
+        {
+            int index = 0;
+            foreach (Transform t in points)
+            {
+                data[index++] = t.position;
+            }
+        }
+        Vector2[] centers = new Vector2[k];
+        int[] assignedCenters = new int[n];
+
+        //1) Randomly select ‘k’ cluster centers.
+        for (int i = 0; i < k; i++)
+        {
+            centers[i] = data[i];
+        }
+
+        // assign initial clusters
+        for (int i = 0; i < n; i++)
+        {
+            
+        }
+
+        bool change = true;
+
+        while (change)
+        {
+            change = false;
+
+            for (int i = 0; i < n; i++)
+            {
+                float smallestDistance = Vector2.Distance(data[i], centers[0]);
+                int smallestDistanceIndex = 0;
+                for (int j = 0; j < k; j++)
+                {
+                    float distance = Vector2.Distance(data[i], centers[j]);
+                    if (distance < smallestDistance)
+                    {
+                        smallestDistance = distance;
+                        smallestDistanceIndex = j;
+                    }
+                }
+
+                if (smallestDistanceIndex != assignedCenters[i])
+                {
+                    assignedCenters[i] = smallestDistanceIndex;
+                    change = true;
+                }
+            }
+
+            if (change)
+            {
+                //recalculate cluster locations if a change occured
+                for (int i = 0; i < k; i++)
+                {
+                    Vector2 mean = Vector2.zero;
+                    int count = 0;
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (assignedCenters[j] == i)
+                        {
+                            mean = mean + data[j];
+                            count = count + 1;
+                        }
+                    }
+                    centers[i] = mean / count;
+                }
+            }
+        }
+
+        for (int i = 0; i < k; i++)
+        {
+            Debug.DrawLine(transform.position, centers[i]);
+        }
+
+        /*
+        //2) Calculate the distance between each data point and cluster centers.
+        List<List<float>> distancesToCenters = new List<List<float>>();
+
+        for (int i = 0; i < centers.Length; i++)
+        {
+            List<float> distances = new List<float>();
+            int index = 0;
+            foreach (Transform t in points)
+            {
+                Vector2 datapoint = t.position;
+
+                distances[index] = Vector2.Distance(centers[i], datapoint);
+            }
+            distancesToCenters.Add(distances);
+        }
+
+        //3) Assign the data point to the cluster center whose distance from the cluster center is minimum of all the cluster centers..
+        for (int i = 0; i < n; i++)
+        {
+            float smallestDistance = distancesToCenters[0][i];
+            int smallestDistanceIndex = 0;
+
+            for (int j = 0; j < centers.Length; j++)
+            {
+                if (distancesToCenters[j][i] < smallestDistance)
+                {
+                    smallestDistance = distancesToCenters[j][i];
+                    smallestDistanceIndex = j;
+                }
+            }
+
+        }
+        */
+
+        //4) Recalculate the new cluster center using: 
+        // v_i = (1/c_i) sum from 1 to c_i of x_i
+        //where, ‘c_i’ represents the number of data points in ith cluster.
+
+        //5) Recalculate the distance between each data point and new obtained cluster centers.
+
+        //6) If no data point was reassigned then stop, otherwise repeat from step 3).
+    }
 
     void OnDrawGizmos()
     {

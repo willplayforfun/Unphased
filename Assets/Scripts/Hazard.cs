@@ -3,12 +3,16 @@ using System.Collections;
 
 public class Hazard : MonoBehaviour
 {
+    public bool active;
 
 	void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.collider.tag == "Point")
+        if (active)
         {
-            Destroy(collision.collider.gameObject);
+            if (collision.collider.tag == "Point")
+            {
+                Destroy(collision.collider.gameObject);
+            }
         }
     }
 }

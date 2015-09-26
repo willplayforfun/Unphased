@@ -11,6 +11,8 @@ public class PointManager : MonoBehaviour {
     [HideInInspector]
     public float repulsionConstant = 1;
 
+    public bool primary = false;
+
     public float attractiveLimit;
     public float repulsiveLimit;
 
@@ -22,10 +24,18 @@ public class PointManager : MonoBehaviour {
 
 	public Vector2 centerOfMass = Vector2.zero;
 
+    public CircleCollider2D cloudMergeCollider;
+
+    public GameObject splitPointManagerTemplate;
+
+    public PointManager()
+    {
+        points = new List<Transform>();
+    }
+
     void Awake()
     {
         turnOffPoint = transform.position;
-        points = new List<Transform>();
     }
 
     private bool _active;
@@ -81,24 +91,29 @@ public class PointManager : MonoBehaviour {
 
     void Start()
     {
-        List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
-        foreach(GameObject obj in objs)
+        // The primary point manager gets all the points starting out
+        if (primary)
         {
-            points.Add(obj.transform);
+            List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
+            foreach(GameObject obj in objs)
+            {
+                points.Add(obj.transform);
+            }
+            /*
+            for (int i = 0; i < 10; i++)
+            {
+                GameObject newPoint = Instantiate(pointPrefab);
+                newPoint.transform.position = this.transform.position + Vector3.up * Random.Range(-1.5f, 1.5f) + Vector3.right * Random.Range(-1.5f, 1.5f) ;
+                points.Add(newPoint.transform);
+            }
+            */
         }
-        /*
-        for (int i = 0; i < 10; i++)
-        {
-            GameObject newPoint = Instantiate(pointPrefab);
-            newPoint.transform.position = this.transform.position + Vector3.up * Random.Range(-1.5f, 1.5f) + Vector3.right * Random.Range(-1.5f, 1.5f) ;
-            points.Add(newPoint.transform);
-        }
-        */
     }
 
     public int minPoints;
+    public float minMergeDistance;
 
-	void FixedUpdate(){
+    void FixedUpdate(){
         if (_active)
         {
             List<Transform> markedForRemoval = new List<Transform>();
@@ -118,10 +133,14 @@ public class PointManager : MonoBehaviour {
 
             if (points.Count < minPoints)
             {
-                Application.LoadLevel(2);
+                Debug.Log("You Died");
+                //Application.LoadLevel(2);
             }
 
             Vector3 tmpCenterMass = Vector3.zero;
+
+            float maxPointDistFromCenter = minMergeDistance;
+
             // loop through points
             foreach (Transform point in points)
             {
@@ -134,11 +153,15 @@ public class PointManager : MonoBehaviour {
                 pointComponent.AddForce(gravityConstant * Vector2.down);
 
                 // Instantiate New PointManager when out of bound
-                if (((Vector2)point.position - centerOfMass).magnitude > distanceFromCenter)
+                float pointDistFromCenter = ((Vector2) point.position - centerOfMass).magnitude;
+                if (pointDistFromCenter > distanceFromCenter)
                 {
                     markedForRemoval.Add(point);
                 }
 
+                if (pointDistFromCenter > maxPointDistFromCenter)
+                    maxPointDistFromCenter = pointDistFromCenter;
+    
                 // loop through other points
                 foreach (Transform otherPoint in points)
                 {
@@ -163,10 +186,18 @@ public class PointManager : MonoBehaviour {
 
             if (!ignoreCoM)
             {
-                foreach (Transform t in markedForRemoval)
+                if (markedForRemoval.Count > 0)
                 {
-                    //points.Remove(t);
-                    //Destroy(t.gameObject);
+                    Debug.Log("Marked for removal " + markedForRemoval.Count);
+                    GameObject newObject = Instantiate(splitPointManagerTemplate);
+                    PointManager newManager = newObject.GetComponent<PointManager>();
+                    newManager.points = markedForRemoval;
+                    newManager.SetActive(true);
+
+                    foreach (Transform t in markedForRemoval)
+                    {
+                        points.Remove(t);
+                    }
                 }
             }
             else
@@ -175,8 +206,26 @@ public class PointManager : MonoBehaviour {
             }
 
             transform.position = centerOfMass;
+
+            // Update the merge collider
+            transform.position = centerOfMass;
+            cloudMergeCollider.transform.localScale = new Vector3(maxPointDistFromCenter, maxPointDistFromCenter, 1);
         }
-	}
+    }
+
+    void OnTriggerEnter2D(Collider2D other) {
+        if (other.tag == "Cloud")
+        {
+            Debug.Log("collided with cloud!");
+            PointManager otherManager = other.transform.parent.GetComponent<PointManager>();
+            // The primary one should be the one to merge the points
+            if (otherManager.primary)
+                return;
+
+            points.AddRange(otherManager.points);
+            Destroy(otherManager.gameObject);
+        }
+    }
 
     void OnDrawGizmos()
     {

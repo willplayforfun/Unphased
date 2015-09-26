@@ -8,7 +8,7 @@ public class Hazard : MonoBehaviour
     {
         if(collision.collider.tag == "Point")
         {
-            Destroy(collision.collider.gameObject);
+            //Destroy(collision.collider.gameObject);
         }
     }
 }

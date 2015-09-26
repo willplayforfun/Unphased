@@ -4,9 +4,12 @@ using System.Collections.Generic;
 
 public class PointManager : MonoBehaviour {
 	
+    [HideInInspector]
 	public float gravityConstant = 1;
-	public float attractionConstant = 1;
-	public float repulsionConstant = 1;
+    [HideInInspector]
+    public float attractionConstant = 1;
+    [HideInInspector]
+    public float repulsionConstant = 1;
 
     public float attractiveLimit;
     public float repulsiveLimit;
@@ -79,7 +82,7 @@ public class PointManager : MonoBehaviour {
 
         tmpCenterMass /= points.Count;
         centerOfMass = tmpCenterMass;
-		Debug.Log (centerOfMass.magnitude);
+		//Debug.Log (centerOfMass.magnitude);
         
         foreach(Transform t in markedForRemoval)
         {

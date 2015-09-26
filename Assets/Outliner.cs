@@ -20,7 +20,7 @@ public class Outliner : MonoBehaviour
         //Start with point with smallest y-coordinate.
         PointManager pm = GetComponent<PointManager>();
 
-        Debug.Log(pm.points.Count);
+        //Debug.Log(pm.points.Count);
 
 
         Transform lowestPoint = pm.points[0];
@@ -33,7 +33,7 @@ public class Outliner : MonoBehaviour
             }
         }
 
-        Debug.Log(lowestPoint.name);
+        //Debug.Log(lowestPoint.name);
 
         Transform currentPoint = lowestPoint;
         Vector3 lastEdge = Vector3.right;
@@ -69,7 +69,7 @@ public class Outliner : MonoBehaviour
                 }
             }
 
-            Debug.Log(bestPoint.name + " " + bestAngle);
+            //Debug.Log(bestPoint.name + " " + bestAngle);
             Debug.DrawLine(currentPoint.position, bestPoint.position, Color.green);
 
             outsidePositions.Add(currentPoint.position);

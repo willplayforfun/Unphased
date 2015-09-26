@@ -70,6 +70,8 @@ public class InputManager : MonoBehaviour {
                 pm.repulsionConstant = RepulsionConstant;
                 currentMode = m;
                 ui.phase = Phase.Gas;
+                transform.rotation = Quaternion.identity;
+
                 break;
             case Mode.Liquid:
                 Debug.Log("Liquid!");
@@ -90,6 +92,7 @@ public class InputManager : MonoBehaviour {
                 pm.repulsionConstant = RepulsionConstant;
                 currentMode = m;
                 ui.phase = Phase.Liquid;
+                transform.rotation = Quaternion.identity;
 
                 break;
             case Mode.Solid:
@@ -145,7 +148,6 @@ public class InputManager : MonoBehaviour {
         }
         else
         {
-            transform.rotation = Quaternion.identity;
         }
     }
 
@@ -164,9 +166,12 @@ public class InputManager : MonoBehaviour {
         {
             foreach (Transform t in pm.points)
             {
-                float distanceFromCenter = (t.position - (Vector3)pm.centerOfMass).magnitude;
-                float mult = (1 - distanceFromCenter / pm.distanceFromCenter);
-                t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * Input.GetAxis("Horizontal") * 5);
+                if (t != null)
+                {
+                    float distanceFromCenter = (t.position - (Vector3)pm.centerOfMass).magnitude;
+                    float mult = (1 - distanceFromCenter / pm.distanceFromCenter);
+                    t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * Input.GetAxis("Horizontal") * 5);
+                }
             }
         }
 

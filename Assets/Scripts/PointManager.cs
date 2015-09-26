@@ -96,13 +96,32 @@ public class PointManager : MonoBehaviour {
         */
     }
 
+    public int minPoints;
+
 	void FixedUpdate(){
         if (_active)
         {
-            Vector3 tmpCenterMass = Vector3.zero;
-
             List<Transform> markedForRemoval = new List<Transform>();
+            foreach (Transform t in points)
+            {
+                if(t==null)
+                {
+                    markedForRemoval.Add(t);
+                }
+            }
+            foreach (Transform t in markedForRemoval)
+            {
+                points.Remove(t);
+            }
+            markedForRemoval.Clear();
 
+
+            if (points.Count < minPoints)
+            {
+                Application.LoadLevel(2);
+            }
+
+            Vector3 tmpCenterMass = Vector3.zero;
             // loop through points
             foreach (Transform point in points)
             {

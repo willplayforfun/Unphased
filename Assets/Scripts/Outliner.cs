@@ -27,7 +27,7 @@ public class Outliner : MonoBehaviour
 
         foreach(Transform point in pm.points)
         {
-            if(point.position.y < lowestPoint.position.y)
+            if(lowestPoint==null || (point!=null && point.position.y < lowestPoint.position.y))
             {
                 lowestPoint = point;
             }
@@ -51,7 +51,7 @@ public class Outliner : MonoBehaviour
             //Pick smallest angle larger than current angle.
             foreach (Transform point in pm.points)
             {
-                if (!point.Equals(currentPoint))
+                if (point!=null && !point.Equals(currentPoint))
                 {
                     float CCWangle = Vector3.Angle(lastEdge, (point.position - currentPoint.position));
 

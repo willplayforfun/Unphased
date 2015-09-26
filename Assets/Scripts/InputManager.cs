@@ -45,6 +45,10 @@ public class InputManager : MonoBehaviour {
 
     public SpriteRenderer eyes;
 
+    public AudioClip toGasSound;
+    public AudioClip toLiquidSound;
+    public AudioClip toSolidSound;
+
     public void SetMode(Mode m)
     {
         if (m != currentMode)
@@ -52,6 +56,7 @@ public class InputManager : MonoBehaviour {
             switch (m)
             {
                 case Mode.Gas:
+                    GetComponent<AudioSource>().PlayOneShot(toGasSound);
                     //Debug.Log("Gas!");
                     if (currentMode == Mode.Solid)
                     {
@@ -77,6 +82,7 @@ public class InputManager : MonoBehaviour {
                     break;
                 case Mode.Liquid:
                     //Debug.Log("Liquid!");
+                    GetComponent<AudioSource>().PlayOneShot(toLiquidSound);
                     if (currentMode == Mode.Solid)
                     {
                         foreach (Transform point in pm.points)
@@ -99,6 +105,7 @@ public class InputManager : MonoBehaviour {
                     break;
                 case Mode.Solid:
                     //Debug.Log("Solid!");
+                    GetComponent<AudioSource>().PlayOneShot(toSolidSound);
                     StartCoroutine(RampAttraction(0.2f, SolidAttraction, true));
                     pm.gravityConstant = SolidGravity;
                     pm.repulsionConstant = RepulsionConstant;

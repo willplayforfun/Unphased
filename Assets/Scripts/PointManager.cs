@@ -98,6 +98,8 @@ public class PointManager : MonoBehaviour {
 
     public int minPoints;
 
+    public AudioClip largeMovementSoundLiquid;
+
 	void FixedUpdate(){
         if (_active)
         {
@@ -157,7 +159,14 @@ public class PointManager : MonoBehaviour {
             }
 
             tmpCenterMass /= points.Count;
-            velocity = (tmpCenterMass - (Vector3)centerOfMass)/Time.deltaTime;
+            Vector3 newVelocity = (tmpCenterMass - (Vector3)centerOfMass)/Time.deltaTime;
+            if(Vector3.Distance(newVelocity, velocity) > 15f)
+            {
+                if (GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid)
+                {
+                    GetComponent<AudioSource>().PlayOneShot(largeMovementSoundLiquid);
+                }
+            }
             centerOfMass = tmpCenterMass;
             //Debug.Log (centerOfMass.magnitude);
 

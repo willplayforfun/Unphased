@@ -8,19 +8,21 @@ public class PointManager : MonoBehaviour {
 	public float attractionConstant = 1;
 	public float repulsionConstant = 1;
 
+    public float attractiveLimit;
     public float repulsiveLimit;
 
 	public float distanceFromCenter;
 
-	public List<Transform> points = new List<Transform>();
+	public List<Transform> points;
 
     public GameObject pointPrefab;
 
-<<<<<<< HEAD
 	public Vector2 centerOfMass = Vector2.zero;
-=======
-	private Vector3 centerOfMass;
->>>>>>> db19871a941cd80a12548f557d1b607d24c2424a
+
+    void Awake()
+    {
+        points = new List<Transform>();
+    }
 
     void Start()
     {
@@ -40,23 +42,23 @@ public class PointManager : MonoBehaviour {
     }
 
 	void FixedUpdate(){
-<<<<<<< HEAD
-=======
-		Vector3 tmpCenterMass = Vector3.zero;
->>>>>>> db19871a941cd80a12548f557d1b607d24c2424a
+        Vector3 tmpCenterMass = Vector3.zero;
+
+        List<Transform> markedForRemoval = new List<Transform>();
+
 		// loop through points
 		foreach (Transform point in points) {
 			Rigidbody2D pointComponent = point.GetComponent<Rigidbody2D>();
 
 			// Center of Mass
-			centerOfMass += (Vector2)point.position;
+            tmpCenterMass += point.position;
 
 			// Add Graivty Force to point
 			pointComponent.AddForce (gravityConstant * Vector2.down);
 
 			// Instantiate New PointManager when out of bound
 			if(((Vector2)point.position - centerOfMass).magnitude > distanceFromCenter) {
-				points.Remove(point);
+                markedForRemoval.Add(point);
 			}
 
 			// loop through other points
@@ -67,7 +69,7 @@ public class PointManager : MonoBehaviour {
                     Vector2 distance = (point.position - otherPoint.position);
 
                     // Add attraction Force to point
-                    pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2)), repulsiveLimit));
+                    pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2)), attractiveLimit));
 
                     // Add repulsive Force to otherPoint
                     pointComponent.AddForce(repulsionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 3)), repulsiveLimit));
@@ -75,7 +77,22 @@ public class PointManager : MonoBehaviour {
 			}
 		}
 
-		centerOfMass /= points.Count;
+        tmpCenterMass /= points.Count;
+        centerOfMass = tmpCenterMass;
 		Debug.Log (centerOfMass.magnitude);
+        
+        foreach(Transform t in markedForRemoval)
+        {
+            points.Remove(t);
+            Destroy(t.gameObject);
+        }
+
+        transform.position = centerOfMass;
 	}
+
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, distanceFromCenter);
+    }
 }

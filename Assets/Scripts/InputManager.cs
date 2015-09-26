@@ -154,15 +154,17 @@ public class InputManager : MonoBehaviour {
         }
     }
 
+    public float cameraDampening;
+
 	// Update is called once per frame
 	void Update () {
         if (currentMode == Mode.Solid)
         {
-            trackingCamera.position = new Vector3(transform.position.x, transform.position.y, trackingCamera.position.z);
+            trackingCamera.position = Vector3.Lerp(trackingCamera.position, new Vector3(transform.position.x, transform.position.y, trackingCamera.position.z), Time.deltaTime/cameraDampening);
         }
         else
         {
-            trackingCamera.position = new Vector3(pm.centerOfMass.x, pm.centerOfMass.y, trackingCamera.position.z);
+            trackingCamera.position = Vector3.Lerp(trackingCamera.position, new Vector3(pm.centerOfMass.x, pm.centerOfMass.y, trackingCamera.position.z), Time.deltaTime / cameraDampening);
         }
 
         if (currentMode != Mode.Solid)

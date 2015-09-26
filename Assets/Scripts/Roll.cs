@@ -12,15 +12,20 @@ public class Roll : MonoBehaviour {
         broken = false;
         _body = GetComponent<Rigidbody2D>();
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    private bool onGround;
+
+    // Update is called once per frame
+    void Update () {
 	    _body.AddTorque(-Input.GetAxis("Horizontal") * torqueFactor);
-        _body.AddForce(Vector2.right * Input.GetAxis("Horizontal") * 5 + Vector2.up * 1);
+        _body.AddForce(Vector2.right * Input.GetAxis("Horizontal") * (onGround ? 5 : 2) + Vector2.up * 1);
+        onGround = false;
+
     }
 
     void OnCollisionEnter2D(Collision2D collision)
     {
+        onGround = true;
         if(collision.relativeVelocity.magnitude > breakSpeed)
         {
             Break();
@@ -46,6 +51,7 @@ public class Roll : MonoBehaviour {
         }
     }
 
+
     IEnumerator WaitThenReload(float rampDuration)
     {
         //spawn fragments
@@ -56,7 +62,8 @@ public class Roll : MonoBehaviour {
             fragment.transform.position = this.transform.position + radial;
             fragment.transform.rotation = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward);
 
-            fragment.GetComponent<Rigidbody2D>().velocity = radial * 5f;
+
+            fragment.GetComponent<Rigidbody2D>().velocity = radial * Random.Range(0f,5f);
             fragment.GetComponent<Rigidbody2D>().angularVelocity = Random.Range(-250, 250);
         }
 
@@ -70,9 +77,20 @@ public class Roll : MonoBehaviour {
         }
 
         //wait
-        yield return new WaitForSeconds(2);
+        timer = 0;
+        while (timer < 2f)
+        {
+            if (Input.GetButtonDown("Start"))
+            {
+                Time.timeScale = 1;
+                Application.LoadLevel(2);
+            }
+            timer += Time.deltaTime;
+            yield return null;
+        }
 
         //load lose
+        Time.timeScale = 1;
         Application.LoadLevelAsync(2);
 
     }

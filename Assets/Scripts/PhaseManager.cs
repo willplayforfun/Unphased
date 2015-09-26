@@ -9,7 +9,7 @@ public enum Phase {
 }
 
 public class PhaseManager : MonoBehaviour {
-    public PhaseChanger phaseChanger = null;
+    //public PhaseChanger phaseChanger = null;
     public RawImage solidImage, liquidImage, gasImage;
     public Texture2D solidActiveTexture,
         solidInactiveTexture,
@@ -17,44 +17,30 @@ public class PhaseManager : MonoBehaviour {
         liquidInactiveTexture,
         gasActiveTexture,
         gasInactiveTexture;
-    public Phase phase;
+    private Phase _phase;
+    public Phase phase
+    {
+        get
+        {
+            return _phase;
+        }
+        set
+        {
+            switch (_phase)
+            {
+                case Phase.Solid:
+                    solidImage.texture = solidInactiveTexture;
+                    break;
+                case Phase.Liquid:
+                    liquidImage.texture = liquidInactiveTexture;
+                    break;
+                case Phase.Gas:
+                    gasImage.texture = gasInactiveTexture;
+                    break;
+            }
 
-	// Use this for initialization
-	void Start () {
-	    solidImage.texture  = phase == Phase.Solid  ? solidActiveTexture  : solidInactiveTexture;
-        liquidImage.texture = phase == Phase.Liquid ? liquidActiveTexture : liquidInactiveTexture;
-        gasImage.texture    = phase == Phase.Gas    ? gasActiveTexture    : gasInactiveTexture;
-    }
-	
-	// Update is called once per frame
-	void Update () {
-	    bool buttonDown = false;
-	    Phase newPhase = 0;
-	    if (Input.GetButton("MakeSolid")) {
-	        newPhase = Phase.Solid;
-	        buttonDown = true;
-	    } else if (Input.GetButton("MakeLiquid")) {
-	        newPhase = Phase.Liquid;
-	        buttonDown = true;
-	    } else if (Input.GetButton("MakeGas")) {
-	        newPhase = Phase.Gas;
-	        buttonDown = true;
-	    }
-
-	    if (buttonDown && newPhase != phase) {
-	        switch (phase) {
-	            case Phase.Solid:
-	                solidImage.texture = solidInactiveTexture;
-	                break;
-	            case Phase.Liquid:
-	                liquidImage.texture = liquidInactiveTexture;
-	                break;
-	            case Phase.Gas:
-	                gasImage.texture = gasInactiveTexture;
-	                break;
-	        }
-
-            switch (newPhase) {
+            switch (value)
+            {
                 case Phase.Solid:
                     solidImage.texture = solidActiveTexture;
                     break;
@@ -66,10 +52,14 @@ public class PhaseManager : MonoBehaviour {
                     break;
             }
 
-            if (phaseChanger != null)
-                phaseChanger.SetPhase(newPhase);
+            _phase = value;
+        }
+    }
 
-            phase = newPhase;
-	    }
-	}
+	// Use this for initialization
+	void Start () {
+	    solidImage.texture  = phase == Phase.Solid  ? solidActiveTexture  : solidInactiveTexture;
+        liquidImage.texture = phase == Phase.Liquid ? liquidActiveTexture : liquidInactiveTexture;
+        gasImage.texture    = phase == Phase.Gas    ? gasActiveTexture    : gasInactiveTexture;
+    }
 }

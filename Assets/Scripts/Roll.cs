@@ -13,5 +13,6 @@ public class Roll : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	    _body.AddTorque(-Input.GetAxis("Horizontal") * torqueFactor);
-	}
+        _body.AddForce(Vector2.right * Input.GetAxis("Horizontal") * 5 + Vector2.up * 1);
+    }
 }

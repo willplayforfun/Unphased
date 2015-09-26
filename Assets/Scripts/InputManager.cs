@@ -58,6 +58,7 @@ public class InputManager : MonoBehaviour {
                 case Mode.Gas:
                     GetComponent<AudioSource>().PlayOneShot(toGasSound);
                     //Debug.Log("Gas!");
+                    GetComponent<Outliner>().show = true;
                     if (currentMode == Mode.Solid)
                     {
                         foreach (Transform point in pm.points)
@@ -82,6 +83,7 @@ public class InputManager : MonoBehaviour {
                     break;
                 case Mode.Liquid:
                     //Debug.Log("Liquid!");
+                    GetComponent<Outliner>().show = true;
                     GetComponent<AudioSource>().PlayOneShot(toLiquidSound);
                     if (currentMode == Mode.Solid)
                     {
@@ -105,6 +107,7 @@ public class InputManager : MonoBehaviour {
                     break;
                 case Mode.Solid:
                     //Debug.Log("Solid!");
+                    GetComponent<Outliner>().show = false;
                     GetComponent<AudioSource>().PlayOneShot(toSolidSound);
                     StartCoroutine(RampAttraction(0.2f, SolidAttraction, true));
                     pm.gravityConstant = SolidGravity;

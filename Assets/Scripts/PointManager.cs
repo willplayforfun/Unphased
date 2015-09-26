@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class PointManager : MonoBehaviour {
-	
+
+    public bool searchOnStart;
+
     [HideInInspector]
 	public float gravityConstant = 1;
     [HideInInspector]
@@ -19,6 +21,7 @@ public class PointManager : MonoBehaviour {
 	public List<Transform> points;
 
     public GameObject pointPrefab;
+    public GameObject cloudManagerPrefab;
 
 	public Vector2 centerOfMass = Vector2.zero;
 
@@ -81,10 +84,13 @@ public class PointManager : MonoBehaviour {
 
     void Start()
     {
-        List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
-        foreach(GameObject obj in objs)
+        if (searchOnStart)
         {
-            points.Add(obj.transform);
+            List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
+            foreach (GameObject obj in objs)
+            {
+                points.Add(obj.transform);
+            }
         }
         /*
         for (int i = 0; i < 10; i++)
@@ -99,8 +105,9 @@ public class PointManager : MonoBehaviour {
     public int minPoints;
 
     public AudioClip largeMovementSoundLiquid;
+    public float largeMovementThreshold = 5.0f;
 
-	void FixedUpdate(){
+    void FixedUpdate(){
         if (_active)
         {
             List<Transform> markedForRemoval = new List<Transform>();
@@ -118,7 +125,7 @@ public class PointManager : MonoBehaviour {
             markedForRemoval.Clear();
 
 
-            if (points.Count < minPoints)
+            if (points.Count < minPoints && GetComponent<InputManager>() != null)
             {
                 Application.LoadLevel(2);
             }
@@ -160,11 +167,12 @@ public class PointManager : MonoBehaviour {
 
             tmpCenterMass /= points.Count;
             Vector3 newVelocity = (tmpCenterMass - (Vector3)centerOfMass)/Time.deltaTime;
-            if(Vector3.Distance(newVelocity, velocity) > 15f)
+            if(Vector3.Distance(newVelocity, velocity) > largeMovementThreshold)
             {
-                if (GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid)
+                AudioSource audioSource = GetComponent<AudioSource>();
+                if (GetComponent<InputManager>() != null && GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid && !audioSource.isPlaying)
                 {
-                    GetComponent<AudioSource>().PlayOneShot(largeMovementSoundLiquid);
+                    audioSource.PlayOneShot(largeMovementSoundLiquid);
                 }
             }
             velocity = newVelocity;
@@ -185,8 +193,177 @@ public class PointManager : MonoBehaviour {
             }
 
             transform.position = centerOfMass;
+
+            if (points.Count > 3)
+            {
+                RunClusterDetection();
+            }
         }
 	}
+
+    void RunClusterDetection()
+    {
+        int k = 2;
+        int n = points.Count;
+
+        Vector2[] data = new Vector2[n];
+        {
+            int index = 0;
+            foreach (Transform t in points)
+            {
+                data[index++] = t.position;
+            }
+        }
+        Vector2[] centers = new Vector2[k];
+        int[] assignedCenters = new int[n];
+
+        //1) Randomly select ‘k’ cluster centers.
+        for (int i = 0; i < k; i++)
+        {
+            centers[i] = data[i];
+        }
+
+        // assign initial clusters
+        for (int i = 0; i < n; i++)
+        {
+            
+        }
+
+        bool change = true;
+
+        while (change)
+        {
+            change = false;
+
+            for (int i = 0; i < n; i++)
+            {
+                float smallestDistance = Vector2.Distance(data[i], centers[0]);
+                int smallestDistanceIndex = 0;
+                for (int j = 0; j < k; j++)
+                {
+                    float distance = Vector2.Distance(data[i], centers[j]);
+                    if (distance < smallestDistance)
+                    {
+                        smallestDistance = distance;
+                        smallestDistanceIndex = j;
+                    }
+                }
+
+                if (smallestDistanceIndex != assignedCenters[i])
+                {
+                    assignedCenters[i] = smallestDistanceIndex;
+                    change = true;
+                }
+            }
+
+            if (change)
+            {
+                //recalculate cluster locations if a change occured
+                for (int i = 0; i < k; i++)
+                {
+                    Vector2 mean = Vector2.zero;
+                    int count = 0;
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (assignedCenters[j] == i)
+                        {
+                            mean = mean + data[j];
+                            count = count + 1;
+                        }
+                    }
+                    centers[i] = mean / count;
+                }
+            }
+        }
+
+        for (int i = 0; i < k; i++)
+        {
+            Debug.DrawLine(transform.position, centers[i]);
+        }
+
+
+        if(Vector2.Distance(centers[0], centers[1]) > distanceFromCenter)
+        {
+            // find bigger cluster
+            int[] clusterCount = new int[k];
+            for (int i = 0; i < n; i++)
+            {
+                clusterCount[assignedCenters[i]]++;
+            }
+            int largestCluster = 0;
+            for (int i = 0; i < k; i++)
+            {
+                if (clusterCount[i] > clusterCount[largestCluster])
+                {
+                    largestCluster = i;
+                }
+            }
+
+            Debug.Log("Splitting");
+
+            List<Transform> markedForRemoval = new List<Transform>();
+
+            GameObject newCManager = Instantiate(cloudManagerPrefab);
+            for (int i = 0; i < n; i++)
+            {
+                if (assignedCenters[i] != largestCluster)
+                {
+                    markedForRemoval.Add(points[i]);
+                    newCManager.GetComponent<PointManager>().points.Add(points[i]);
+                    newCManager.GetComponent<PointManager>().SetActive(true);
+                }
+
+            }
+            Debug.Log("Removing " + markedForRemoval.Count);
+            foreach (Transform t in markedForRemoval)
+            {
+                points.Remove(t);
+            }
+        }
+
+        /*
+        //2) Calculate the distance between each data point and cluster centers.
+        List<List<float>> distancesToCenters = new List<List<float>>();
+
+        for (int i = 0; i < centers.Length; i++)
+        {
+            List<float> distances = new List<float>();
+            int index = 0;
+            foreach (Transform t in points)
+            {
+                Vector2 datapoint = t.position;
+
+                distances[index] = Vector2.Distance(centers[i], datapoint);
+            }
+            distancesToCenters.Add(distances);
+        }
+
+        //3) Assign the data point to the cluster center whose distance from the cluster center is minimum of all the cluster centers..
+        for (int i = 0; i < n; i++)
+        {
+            float smallestDistance = distancesToCenters[0][i];
+            int smallestDistanceIndex = 0;
+
+            for (int j = 0; j < centers.Length; j++)
+            {
+                if (distancesToCenters[j][i] < smallestDistance)
+                {
+                    smallestDistance = distancesToCenters[j][i];
+                    smallestDistanceIndex = j;
+                }
+            }
+
+        }
+        */
+
+        //4) Recalculate the new cluster center using: 
+        // v_i = (1/c_i) sum from 1 to c_i of x_i
+        //where, ‘c_i’ represents the number of data points in ith cluster.
+
+        //5) Recalculate the distance between each data point and new obtained cluster centers.
+
+        //6) If no data point was reassigned then stop, otherwise repeat from step 3).
+    }
 
     void OnDrawGizmos()
     {

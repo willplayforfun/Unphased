@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class PointManager : MonoBehaviour {
-	
+
+    public bool searchOnStart;
+
     [HideInInspector]
 	public float gravityConstant = 1;
     [HideInInspector]
@@ -19,6 +21,7 @@ public class PointManager : MonoBehaviour {
 	public List<Transform> points;
 
     public GameObject pointPrefab;
+    public GameObject cloudManagerPrefab;
 
 	public Vector2 centerOfMass = Vector2.zero;
 
@@ -81,10 +84,13 @@ public class PointManager : MonoBehaviour {
 
     void Start()
     {
-        List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
-        foreach(GameObject obj in objs)
+        if (searchOnStart)
         {
-            points.Add(obj.transform);
+            List<GameObject> objs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Point"));
+            foreach (GameObject obj in objs)
+            {
+                points.Add(obj.transform);
+            }
         }
         /*
         for (int i = 0; i < 10; i++)
@@ -119,7 +125,7 @@ public class PointManager : MonoBehaviour {
             markedForRemoval.Clear();
 
 
-            if (points.Count < minPoints)
+            if (points.Count < minPoints && GetComponent<InputManager>() != null)
             {
                 Application.LoadLevel(2);
             }
@@ -164,7 +170,7 @@ public class PointManager : MonoBehaviour {
             if(Vector3.Distance(newVelocity, velocity) > largeMovementThreshold)
             {
                 AudioSource audioSource = GetComponent<AudioSource>();
-                if (GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid && !audioSource.isPlaying)
+                if (GetComponent<InputManager>() != null && GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid && !audioSource.isPlaying)
                 {
                     audioSource.PlayOneShot(largeMovementSoundLiquid);
                 }
@@ -188,7 +194,10 @@ public class PointManager : MonoBehaviour {
 
             transform.position = centerOfMass;
 
-            RunClusterDetection();
+            if (points.Count > 3)
+            {
+                RunClusterDetection();
+            }
         }
 	}
 
@@ -270,6 +279,46 @@ public class PointManager : MonoBehaviour {
         for (int i = 0; i < k; i++)
         {
             Debug.DrawLine(transform.position, centers[i]);
+        }
+
+
+        if(Vector2.Distance(centers[0], centers[1]) > distanceFromCenter)
+        {
+            // find bigger cluster
+            int[] clusterCount = new int[k];
+            for (int i = 0; i < n; i++)
+            {
+                clusterCount[assignedCenters[i]]++;
+            }
+            int largestCluster = 0;
+            for (int i = 0; i < k; i++)
+            {
+                if (clusterCount[i] > clusterCount[largestCluster])
+                {
+                    largestCluster = i;
+                }
+            }
+
+            Debug.Log("Splitting");
+
+            List<Transform> markedForRemoval = new List<Transform>();
+
+            GameObject newCManager = Instantiate(cloudManagerPrefab);
+            for (int i = 0; i < n; i++)
+            {
+                if (assignedCenters[i] != largestCluster)
+                {
+                    markedForRemoval.Add(points[i]);
+                    newCManager.GetComponent<PointManager>().points.Add(points[i]);
+                    newCManager.GetComponent<PointManager>().SetActive(true);
+                }
+
+            }
+            Debug.Log("Removing " + markedForRemoval.Count);
+            foreach (Transform t in markedForRemoval)
+            {
+                points.Remove(t);
+            }
         }
 
         /*

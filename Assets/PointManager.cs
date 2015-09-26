@@ -14,7 +14,7 @@ public class PointManager : MonoBehaviour {
 
     public GameObject pointPrefab;
 
-	private Transform centerOfMass = 0;
+	private Vector3 centerOfMass;
 
     void Start()
     {
@@ -34,7 +34,7 @@ public class PointManager : MonoBehaviour {
     }
 
 	void FixedUpdate(){
-		float tmpCenterMass = 0;
+		Vector3 tmpCenterMass = Vector3.zero;
 		// loop through points
 		foreach (Transform point in points) {
 			Rigidbody2D pointComponent = point.GetComponent<Rigidbody2D>();

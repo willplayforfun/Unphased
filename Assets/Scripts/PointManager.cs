@@ -198,8 +198,42 @@ public class PointManager : MonoBehaviour {
             {
                 RunClusterDetection();
             }
+            //RunMergeCheck();
         }
 	}
+
+    void RunMergeCheck()
+    {
+        List<GameObject> markedForDeletion = new List<GameObject>();
+        foreach(PointManager o in GameObject.FindObjectsOfType<PointManager>())
+        {
+            if(Vector2.Distance(o.centerOfMass, centerOfMass) < distanceFromCenter)
+            {
+                if (o.GetComponent<InputManager>() != null)
+                {
+                    foreach(Transform t in points)
+                    {
+                        o.points.Add(t);
+                    }
+                    Destroy(this.gameObject);
+
+                }
+                else // add to us
+                {
+                    foreach (Transform t in o.points)
+                    {
+                        points.Add(t);
+                    }
+                    markedForDeletion.Add(o.gameObject);
+                }
+            }
+        }
+        foreach (GameObject g in markedForDeletion)
+        {
+            Destroy(g);
+        }
+
+    }
 
     void RunClusterDetection()
     {

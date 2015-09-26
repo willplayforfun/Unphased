@@ -6,6 +6,8 @@ public class Outliner : MonoBehaviour
 {
     private int outsideVertexCount;
 
+    public bool show;
+
     void LateUpdate()
     {
         JarvisWrap();
@@ -23,8 +25,11 @@ public class Outliner : MonoBehaviour
         if (pm.points.Count > 3)
         {
             //Debug.Log(pm.points.Count);
-            mf.GetComponent<MeshRenderer>().enabled = true;
-            GetComponent<LineRenderer>().enabled = true;
+            if (show)
+            {
+                mf.GetComponent<MeshRenderer>().enabled = true;
+                GetComponent<LineRenderer>().enabled = true;
+            }
 
             Transform lowestPoint = pm.points[0];
 

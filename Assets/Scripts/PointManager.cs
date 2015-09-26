@@ -167,6 +167,7 @@ public class PointManager : MonoBehaviour {
                     GetComponent<AudioSource>().PlayOneShot(largeMovementSoundLiquid);
                 }
             }
+            velocity = newVelocity;
             centerOfMass = tmpCenterMass;
             //Debug.Log (centerOfMass.magnitude);
 

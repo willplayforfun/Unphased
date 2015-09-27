@@ -109,6 +109,9 @@ public class PointManager : MonoBehaviour {
     public AudioClip largeMovementSoundLiquid;
     public float largeMovementThreshold = 5.0f;
 
+    public float liquidAudioEventGap;
+    private float lastLiquidAudioEvent;
+
     void FixedUpdate(){
         if (GetComponent<InputManager>()==null && Time.time - creationTime > maxAloneTime)
         {
@@ -183,8 +186,9 @@ public class PointManager : MonoBehaviour {
             if(Vector3.Distance(newVelocity, velocity) > largeMovementThreshold)
             {
                 AudioSource audioSource = GetComponent<AudioSource>();
-                if (GetComponent<InputManager>() != null && GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid && !audioSource.isPlaying)
+                if (GetComponent<InputManager>() != null && GetComponent<InputManager>().currentMode == InputManager.Mode.Liquid && !audioSource.isPlaying && Time.time - lastLiquidAudioEvent > liquidAudioEventGap)
                 {
+                    lastLiquidAudioEvent = Time.time;
                     audioSource.PlayOneShot(largeMovementSoundLiquid);
                 }
             }

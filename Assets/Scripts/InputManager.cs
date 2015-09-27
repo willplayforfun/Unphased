@@ -173,6 +173,12 @@ public class InputManager : MonoBehaviour {
     public float massAddRate;
     public float idealMass;
 
+    public float maxY;
+    public float minY;
+
+    public float maxX;
+    public float minX;
+
     // Update is called once per frame
     void Update () {
 
@@ -191,6 +197,26 @@ public class InputManager : MonoBehaviour {
             trackingCamera.position = Vector3.Lerp(trackingCamera.position, new Vector3(pm.centerOfMass.x, pm.centerOfMass.y, trackingCamera.position.z), Time.deltaTime / cameraDampening);
         }
 
+        // camera restriction
+        if (trackingCamera.position.y > maxY)
+        {
+            trackingCamera.position = new Vector3(trackingCamera.position.x, maxY, trackingCamera.position.z);
+        }
+        if (trackingCamera.position.y < minY)
+        {
+            trackingCamera.position = new Vector3(trackingCamera.position.x, minY, trackingCamera.position.z);
+        }
+
+        if (trackingCamera.position.x > maxX)
+        {
+            trackingCamera.position = new Vector3(maxX, trackingCamera.position.y, trackingCamera.position.z);
+        }
+        if (trackingCamera.position.x < minX)
+        {
+            trackingCamera.position = new Vector3(minX, trackingCamera.position.y, trackingCamera.position.z);
+        }
+
+        // fluid movement
         if (currentMode != Mode.Solid)
         {
             foreach (Transform t in pm.points)

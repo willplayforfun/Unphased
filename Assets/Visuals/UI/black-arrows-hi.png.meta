@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 587e5fb0df3609440949db733b60697d
-timeCreated: 1443334544
+guid: 874a83f573b13d74396d6cbba9b89b65
+timeCreated: 1443334856
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: blank-keyboard-keys-md_0
+    21300000: black-arrows-hi_0
+    21300002: black-arrows-hi_1
+    21300004: black-arrows-hi_2
+    21300006: black-arrows-hi_3
   serializedVersion: 2
   mipmaps:
     mipMapMode: 0
@@ -50,13 +53,43 @@ TextureImporter:
   buildTargetSettings: []
   spriteSheet:
     sprites:
-    - name: blank-keyboard-keys-md_0
+    - name: black-arrows-hi_0
       rect:
         serializedVersion: 2
-        x: 151
-        y: 152
-        width: 140
-        height: 146
+        x: 0
+        y: 303
+        width: 260
+        height: 100
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: black-arrows-hi_1
+      rect:
+        serializedVersion: 2
+        x: 340
+        y: 300
+        width: 260
+        height: 100
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: black-arrows-hi_2
+      rect:
+        serializedVersion: 2
+        x: 358
+        y: 4
+        width: 225
+        height: 197
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: black-arrows-hi_3
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 0
+        width: 225
+        height: 197
       alignment: 0
       pivot: {x: .5, y: .5}
       border: {x: 0, y: 0, z: 0, w: 0}

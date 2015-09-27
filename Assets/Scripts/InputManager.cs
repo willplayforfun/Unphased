@@ -16,7 +16,7 @@ public class InputManager : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         pm = GetComponent<PointManager>();
-        SetMode(Mode.Liquid);
+        SetMode(Mode.Solid);
 	}
 
     PointManager pm;
@@ -169,8 +169,19 @@ public class InputManager : MonoBehaviour {
     public float gasMovementForce = 5;
     public float liquidMovementForce = 5;
 
-	// Update is called once per frame
-	void Update () {
+    private float lastAddTime;
+    public float massAddRate;
+    public float idealMass;
+
+    // Update is called once per frame
+    void Update () {
+
+        if(pm.points.Count < idealMass && Time.time - lastAddTime > 1 / massAddRate)
+        {
+            lastAddTime = Time.time;
+            pm.AddRandomPoint();
+        }
+
         if (currentMode == Mode.Solid)
         {
             trackingCamera.position = Vector3.Lerp(trackingCamera.position, new Vector3(transform.position.x, transform.position.y, trackingCamera.position.z), Time.deltaTime/cameraDampening);
@@ -187,7 +198,7 @@ public class InputManager : MonoBehaviour {
                 if (t != null)
                 {
                     float distanceFromCenter = (t.position - (Vector3)pm.centerOfMass).magnitude;
-                    float mult = (1 - distanceFromCenter / pm.distanceFromCenter);
+                    //float mult = (1 - distanceFromCenter / );
                     t.GetComponent<Rigidbody2D>().AddForce(Vector2.right * Input.GetAxis("Horizontal") * (currentMode==Mode.Gas ? gasMovementForce : liquidMovementForce));
                 }
             }

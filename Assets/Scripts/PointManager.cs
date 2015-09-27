@@ -6,6 +6,9 @@ public class PointManager : MonoBehaviour {
 
     public bool searchOnStart;
 
+    private float creationTime;
+    public float maxAloneTime;
+
     [HideInInspector]
 	public float gravityConstant = 1;
     [HideInInspector]
@@ -16,8 +19,6 @@ public class PointManager : MonoBehaviour {
     public float attractiveLimit;
     public float repulsiveLimit;
 
-	public float distanceFromCenter;
-
 	public List<Transform> points;
 
     public GameObject pointPrefab;
@@ -27,6 +28,7 @@ public class PointManager : MonoBehaviour {
 
     void Awake()
     {
+        creationTime = Time.time;
         turnOffPoint = transform.position;
         points = new List<Transform>();
     }
@@ -108,6 +110,15 @@ public class PointManager : MonoBehaviour {
     public float largeMovementThreshold = 5.0f;
 
     void FixedUpdate(){
+        if (GetComponent<InputManager>()==null && Time.time - creationTime > maxAloneTime)
+        {
+            foreach (Transform t in points)
+            {
+                Destroy(t.gameObject);
+            }
+            Destroy(this.gameObject);
+        }
+
         if (_active)
         {
             List<Transform> markedForRemoval = new List<Transform>();
@@ -140,10 +151,10 @@ public class PointManager : MonoBehaviour {
                 tmpCenterMass += point.position;
 
                 // Add Graivty Force to point
-                pointComponent.AddForce(gravityConstant * Vector2.down);
+                pointComponent.AddForce(gravityConstant * Vector2.down * ((points.Count<3)?3f:1f));
 
                 // Instantiate New PointManager when out of bound
-                if (((Vector2)point.position - centerOfMass).magnitude > distanceFromCenter)
+                if (((Vector2)point.position - centerOfMass).magnitude > maxDistancefromCenter * distanceFromCenterCurve.Evaluate(points.Count/maxPointsEval))
                 {
                     markedForRemoval.Add(point);
                 }
@@ -155,12 +166,14 @@ public class PointManager : MonoBehaviour {
                     if (!point.Equals(otherPoint))
                     {
                         Vector2 distance = (point.position - otherPoint.position);
+                        if (distance.magnitude > 0)
+                        {
+                            // Add attraction Force to point
+                            pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 1.5f)), attractiveLimit));
 
-                        // Add attraction Force to point
-                        pointComponent.AddForce(-attractionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 1.5f)), attractiveLimit));
-
-                        // Add repulsive Force to otherPoint
-                        pointComponent.AddForce(repulsionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2.5f)), repulsiveLimit));
+                            // Add repulsive Force to otherPoint
+                            pointComponent.AddForce(repulsionConstant * Vector2.ClampMagnitude((distance.normalized / Mathf.Pow(distance.magnitude, 2.5f)), repulsiveLimit));
+                        }
                     }
                 }
             }
@@ -194,7 +207,7 @@ public class PointManager : MonoBehaviour {
 
             transform.position = centerOfMass;
 
-            if (points.Count > 3)
+            if (points.Count > 1)
             {
                 RunClusterDetection();
             }
@@ -202,29 +215,36 @@ public class PointManager : MonoBehaviour {
         }
 	}
 
+    public AnimationCurve distanceFromCenterCurve;
+    public float maxPointsEval;
+    public float maxDistancefromCenter;
+
     void RunMergeCheck()
     {
         List<GameObject> markedForDeletion = new List<GameObject>();
         foreach(PointManager o in GameObject.FindObjectsOfType<PointManager>())
         {
-            if(Vector2.Distance(o.centerOfMass, centerOfMass) < distanceFromCenter)
+            if (!o.Equals(this))
             {
-                if (o.GetComponent<InputManager>() != null)
+                if (Vector2.Distance(o.centerOfMass, centerOfMass) < maxDistancefromCenter * distanceFromCenterCurve.Evaluate(points.Count / maxPointsEval))
                 {
-                    foreach(Transform t in points)
+                    if (o.GetComponent<InputManager>() != null)
                     {
-                        o.points.Add(t);
-                    }
-                    Destroy(this.gameObject);
+                        foreach (Transform t in points)
+                        {
+                            o.points.Add(t);
+                        }
+                        markedForDeletion.Add(this.gameObject);
 
-                }
-                else // add to us
-                {
-                    foreach (Transform t in o.points)
-                    {
-                        points.Add(t);
                     }
-                    markedForDeletion.Add(o.gameObject);
+                    else // add to us
+                    {
+                        foreach (Transform t in o.points)
+                        {
+                            points.Add(t);
+                        }
+                        markedForDeletion.Add(o.gameObject);
+                    }
                 }
             }
         }
@@ -316,7 +336,7 @@ public class PointManager : MonoBehaviour {
         }
 
 
-        if(Vector2.Distance(centers[0], centers[1]) > distanceFromCenter)
+        if(Vector2.Distance(centers[0], centers[1]) > maxDistancefromCenter * distanceFromCenterCurve.Evaluate(points.Count / maxPointsEval))
         {
             // find bigger cluster
             int[] clusterCount = new int[k];
@@ -354,63 +374,23 @@ public class PointManager : MonoBehaviour {
                 points.Remove(t);
             }
         }
-
-        /*
-        //2) Calculate the distance between each data point and cluster centers.
-        List<List<float>> distancesToCenters = new List<List<float>>();
-
-        for (int i = 0; i < centers.Length; i++)
-        {
-            List<float> distances = new List<float>();
-            int index = 0;
-            foreach (Transform t in points)
-            {
-                Vector2 datapoint = t.position;
-
-                distances[index] = Vector2.Distance(centers[i], datapoint);
-            }
-            distancesToCenters.Add(distances);
-        }
-
-        //3) Assign the data point to the cluster center whose distance from the cluster center is minimum of all the cluster centers..
-        for (int i = 0; i < n; i++)
-        {
-            float smallestDistance = distancesToCenters[0][i];
-            int smallestDistanceIndex = 0;
-
-            for (int j = 0; j < centers.Length; j++)
-            {
-                if (distancesToCenters[j][i] < smallestDistance)
-                {
-                    smallestDistance = distancesToCenters[j][i];
-                    smallestDistanceIndex = j;
-                }
-            }
-
-        }
-        */
-
-        //4) Recalculate the new cluster center using: 
-        // v_i = (1/c_i) sum from 1 to c_i of x_i
-        //where, ‘c_i’ represents the number of data points in ith cluster.
-
-        //5) Recalculate the distance between each data point and new obtained cluster centers.
-
-        //6) If no data point was reassigned then stop, otherwise repeat from step 3).
     }
 
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, distanceFromCenter);
+        Gizmos.DrawWireSphere(transform.position, maxDistancefromCenter * distanceFromCenterCurve.Evaluate(points.Count / maxPointsEval));
     }
 
     public void AddRandomPoint()
     {
-        Vector3 radial = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward) * Vector3.right * Random.Range(0, distanceFromCenter);
-        GameObject newPoint = Instantiate(pointPrefab);
-        newPoint.transform.position = transform.position + radial;
-        points.Add(newPoint.transform);
+        if (GetComponent<InputManager>().currentMode != InputManager.Mode.Solid)
+        {
+            Vector3 radial = Quaternion.AngleAxis(Random.Range(0, 360), Vector3.forward) * Vector3.right * Random.Range(0, 1);
+            GameObject newPoint = Instantiate(pointPrefab);
+            newPoint.transform.position = transform.position + radial;
+            points.Add(newPoint.transform);
+        }
     }
 
     public void SubtractRandomPoint()

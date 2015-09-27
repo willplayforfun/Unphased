@@ -32,23 +32,33 @@ public class Roll : MonoBehaviour {
 
     private float lastImpactEffect;
 
+    private float lastAudioEffect;
+    public float audioEffectGap = 2f;
+
     void OnCollisionEnter2D(Collision2D collision)
     {
 
-        Debug.Log("Collision of magnitude " + collision.relativeVelocity.magnitude);
+        //Debug.Log("Collision of magnitude " + collision.relativeVelocity.magnitude);
         if(collision.relativeVelocity.magnitude > breakSpeed)
         {
             Break();
         }
         else
         {
-            GetComponent<AudioSource>().PlayOneShot(impactSounds[Random.Range(0, impactSounds.Length)]);
-
             if (Time.time - lastImpactEffect > 0.8f)
             {
                 lastImpactEffect = Time.time;
+
                 SpawnImpactEffects(5);
             }
+            if (Time.time - lastAudioEffect > audioEffectGap)
+            {
+                lastAudioEffect = Time.time;
+
+                GetComponent<AudioSource>().PlayOneShot(impactSounds[Random.Range(0, impactSounds.Length)]);
+
+            }
+
         }
     }
 

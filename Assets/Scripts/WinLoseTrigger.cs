@@ -12,14 +12,16 @@ public class WinLoseTrigger : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D collider)
     {
-        switch(condition)
-        {
-            case Condition.Lose:
-                Application.LoadLevel(2);
-                break;
-            case Condition.Win:
-                Application.LoadLevel(3);
-                break;
-        }   
+        if (collider.gameObject.layer == 9) {
+            switch (condition)
+            {
+                case Condition.Lose:
+                    Application.LoadLevel(2);
+                    break;
+                case Condition.Win:
+                    Application.LoadLevel(3);
+                    break;
+            }
+        }
     }
 }

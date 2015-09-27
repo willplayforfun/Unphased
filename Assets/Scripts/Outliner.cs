@@ -8,12 +8,13 @@ public class Outliner : MonoBehaviour
 
     public bool show;
 
-    void LateUpdate()
+    void Update()
     {
         JarvisWrap();
     }
 
     public MeshFilter mf;
+    public SpriteRenderer drop;
 
     public void JarvisWrap()
     {
@@ -29,6 +30,8 @@ public class Outliner : MonoBehaviour
             {
                 mf.GetComponent<MeshRenderer>().enabled = true;
                 GetComponent<LineRenderer>().enabled = true;
+                drop.enabled = false;
+
             }
 
             Transform lowestPoint = pm.points[0];
@@ -164,6 +167,7 @@ public class Outliner : MonoBehaviour
         {
             mf.GetComponent<MeshRenderer>().enabled = false;
             GetComponent<LineRenderer>().enabled = false;
+            drop.enabled = true;
         }
     }
 }

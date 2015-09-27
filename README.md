@@ -6,7 +6,7 @@ Creators
 -----------
 (all students at the University of Southern California)
  * Matt Levonian
-   [mattlevonian.com] [@mattlevonian](twitter.com/mattlevonian)
+   [mattlevonian.com](mattlevonian.com) [@mattlevonian](twitter.com/mattlevonian)
  * Katie Yu
  * Bryce Matsumori
  * Tristan Bridge
